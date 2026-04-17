@@ -1,0 +1,382 @@
+/* Global Styles */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2ecc71;
+  --background-light: #f8f9fa;
+  --text-dark: #2c3e50;
+  --text-muted: #2c3e50;
+  --border-light: #ecf0f1;
+}
+
+/* Dashboard-specific styles - applied to component instead of global body */
+.dashboard-page {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Arial', sans-serif;
+  background-color: var(--background-light);
+  line-height: 1.6;
+  color: var(--text-dark);
+}
+
+/* Dashboard Container */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
+  margin: 20px auto;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+  background-color: white;
+  padding: 25px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.dashboard-header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-header h1 span {
+  display: block;
+}
+
+.dashboard-user-name {
+  margin-top: 4px;
+}
+
+/* Header Main Section */
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+/* Refresh Button */
+.refresh-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-btn:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.refresh-btn:active {
+  transform: translateY(0);
+}
+
+/* Header Controls */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.date-controls, .shift-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.shift-controls {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.hide-load-efficiency-checkbox {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--primary-color);
+  margin-left: 8px;
+}
+
+.header-controls button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--border-light);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.header-controls button.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.header-controls button:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Progress Section */
+.progress-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  padding: 30px;
+  background-color: var(--background-light);
+}
+
+.device-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  gap: 25px;
+  padding-bottom: 20px;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+.device-section h2 {
+  color: #1890ff;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
+  font-weight: 600;
+}
+
+.channel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.shift-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 250px;
+}
+
+.shift-section:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.shift-section h4 {
+  margin-bottom: 15px;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.shift-section p {
+  color: var(--text-muted);
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
+
+/* Bar Chart Section */
+.bar-chart-section {
+  padding: 30px;
+  border-top: 1px solid var(--border-light);
+}
+
+/* Circular Progress Styling */
+.CircularProgressbar {
+  width: 150px;
+  height: 150px;
+}
+
+.CircularProgressbar .CircularProgressbar-path {
+  stroke-width: 8px;
+}
+
+.CircularProgressbar .CircularProgressbar-text {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Desktop: Maintain horizontal layout */
+.channel-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+/* Date Picker Styling */
+.date-controls .ant-picker {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  padding: 12px 12px;
+  font-size: 16px;
+}
+
+.date-controls .ant-picker input {
+  font-size: 20px;
+  text-align: center;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.date-controls .ant-picker:hover {
+  border-color: #1890ff;
+}
+
+.date-controls .ant-picker-focused {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* Loading States */
+.App {
+  position: relative;
+}
+
+/* Position relative is already set in the main definition above */
+
+/* main-content styles are defined above, position relative is inherited */
+
+/* Content loader - positioned relative to main content, not covering sidebar */
+.content-loader {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  background-color: rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  backdrop-filter: blur(3px);
+  margin: 20px 0;
+}
+
+.content-loader p {
+  margin-top: 20px;
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.content-loader .ant-spin-lg .ant-spin-dot {
+  font-size: 48px;
+}
+
+.content-loader .ant-spin-lg .ant-spin-dot i {
+  width: 22px;
+  height: 22px;
+}
+
+/* Remove full-screen-loader as it covers sidebar */
+.full-screen-loader {
+  display: none; /* Disable full screen loader */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    margin: 10px;
+    border-radius: 10px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .header-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .refresh-btn {
+    align-self: flex-end;
+    margin-top: 10px;
+  }
+
+  .header-controls {
+    width: 100%;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .date-controls, .shift-controls {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .header-controls button {
+    width: 100%;
+  }
+
+  .device-section {
+    flex-direction: column;
+  }
+
+  .channel-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .channel-section {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .content-loader {
+    min-height: 300px;
+    margin: 10px 0;
+  }
+}

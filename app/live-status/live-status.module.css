@@ -1,0 +1,770 @@
+.page {
+  margin: 0;
+  padding: 24px;
+  font-family: "Inter", Arial, sans-serif;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  color: #2c3e50;
+}
+
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  max-width: 1440px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.dashboardHeader {
+  background-color: #fff;
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.headerMain {
+  flex: 1 1 auto;
+}
+
+.refreshButton {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.refreshButton:hover {
+  background: #2980b9;
+}
+
+.dashboardHeader h1 {
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.dashboardHeader h1 span {
+  display: block;
+}
+
+.dashboardUserName {
+  margin-top: 4px;
+}
+
+.headerCopy {
+  margin: 10px 0 0;
+  max-width: 70ch;
+  color: #546372;
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dateControls input {
+  height: 42px;
+  padding: 0 12px;
+  font-size: 15px;
+  border: 1px solid #d7dee6;
+  border-radius: 8px;
+}
+
+.shiftControls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.shiftControls button {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.shiftControls button:hover,
+.active {
+  background-color: #3498db;
+  color: #fff;
+}
+
+.summarySection {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 18px;
+  flex: 1 1 auto;
+}
+
+.topBar {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.25fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 24px 28px 0;
+  align-items: stretch;
+}
+
+.summaryCard {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e6edf5;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.summaryCard span {
+  display: block;
+  font-size: 0.88rem;
+  color: #718096;
+}
+
+.summaryCard strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.5rem;
+}
+
+.overviewCard {
+  padding: 22px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(52, 152, 219, 0.16), transparent 28%),
+    linear-gradient(135deg, #ffffff 0%, #f5f9ff 100%);
+  border: 1px solid #dfeaf7;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.overviewEyebrow {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(24, 144, 255, 0.1);
+  color: #2563eb;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.overviewMain h3 {
+  margin: 10px 0 6px;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: #1f2937;
+}
+
+.overviewMain p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.98rem;
+}
+
+.overviewMeta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.overviewMetaItem {
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid #e6edf5;
+}
+
+.overviewMetaItem span {
+  display: block;
+  color: #718096;
+  font-size: 0.82rem;
+}
+
+.overviewMetaItem strong {
+  display: block;
+  margin-top: 6px;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.overviewBadges {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.overviewBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.badgeGood {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badgeBad {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.badgeNeutral {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 28px;
+  background-color: #f8f9fa;
+}
+
+.deviceSection {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.deviceSection h2 {
+  color: #1890ff;
+  margin: 0;
+  font-weight: 600;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.sectionHeader p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.92rem;
+}
+
+.channelContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.machineCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 250px;
+  min-height: 340px;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+
+.machineCard:hover {
+  transform: translateY(-6px);
+}
+
+.statusOn {
+  background: rgba(67, 170, 139, 0.15);
+}
+
+.statusOff {
+  background: rgba(249, 65, 68, 0.14);
+}
+
+.statusWarn {
+  background: rgba(248, 150, 30, 0.16);
+}
+
+.statusUnknown {
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.cardHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cardHeader h4 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.cardHeader p {
+  margin: 3px 0 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  height: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.runtimeDial {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.runtimeDialInner {
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.runtimeDialInner strong {
+  font-size: 1.4rem;
+}
+
+.cardStats {
+  width: 100%;
+}
+
+.cardStats p {
+  margin: 6px 0;
+  font-size: 0.92rem;
+  color: #425466;
+}
+
+.contentLoader {
+  min-height: 280px;
+  margin: 24px 28px 28px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.96);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contentLoader p {
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+  backdrop-filter: blur(4px);
+}
+
+.modalCard {
+  width: min(920px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  padding: 28px;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.modalTitleBlock {
+  flex: 1;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  text-align: center;
+  font-size: 1.875rem;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.modalClose {
+  border: none;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.buttonsGroup {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.scrollableContent {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.dataSection {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.infoCard {
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.infoLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.infoValue {
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.tabSelector {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  gap: 15px;
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.tabSelector button {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.activeTab {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #fff !important;
+}
+
+.contentArea {
+  min-height: 420px;
+}
+
+.tableSection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tableControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tableControlLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #4b5563;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.tableSelect {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #1f2937;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.92rem;
+}
+
+.tableSection h3,
+.graphSection h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.modalTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.modalTable th,
+.modalTable td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.modalTable th {
+  background: linear-gradient(135deg, #374151, #1f2937);
+  color: #f9fafb;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modalTable tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.modalTable tbody tr:hover {
+  background-color: #e0f2fe;
+}
+
+.modalTable tfoot tr {
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  border-top: 2px solid #1f2937;
+}
+
+.modalTable tfoot td {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.graphWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+}
+
+.graphSection {
+  min-height: 420px;
+  overflow: auto;
+  padding: 14px;
+  background: linear-gradient(135deg, #f8fafc, #ffffff);
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.graphSvg {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+
+.graphGrid {
+  stroke: #dbe4ee;
+  stroke-width: 1;
+}
+
+.graphAxisLabel {
+  fill: #64748b;
+  font-size: 12px;
+}
+
+.graphPath {
+  fill: none;
+  stroke: #1890ff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.graphPoint {
+  fill: #3498db;
+  cursor: pointer;
+}
+
+.graphLabels {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #64748b;
+  font-size: 0.86rem;
+}
+
+.graphTooltip {
+  align-self: flex-start;
+  background: rgba(17, 24, 39, 0.92);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+}
+
+.emptyState {
+  margin: 0;
+  color: #64748b;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 1100px) {
+  .summarySection {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .topBar {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 10px;
+  }
+
+  .dashboardHeader {
+    flex-direction: column;
+  }
+
+  .summarySection {
+    grid-template-columns: 1fr;
+  }
+
+  .headerControls,
+  .shiftControls,
+  .channelContainer,
+  .topBar {
+    width: 100%;
+  }
+
+  .machineCard {
+    width: 100%;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modalCard {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .modalHeader h2 {
+    font-size: 1.5rem;
+  }
+
+  .dataSection,
+  .tabSelector {
+    flex-direction: column;
+  }
+
+  .graphSection {
+    min-height: 320px;
+    padding: 10px;
+  }
+}
