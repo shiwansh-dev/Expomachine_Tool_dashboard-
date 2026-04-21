@@ -129,6 +129,15 @@ function getShiftFilter(value?: string): ShiftFilter {
   return "all";
 }
 
+function addDays(date: string, days: number) {
+  const baseDate = new Date(`${date}T00:00:00`);
+  baseDate.setDate(baseDate.getDate() + days);
+  const year = baseDate.getFullYear();
+  const month = String(baseDate.getMonth() + 1).padStart(2, "0");
+  const day = String(baseDate.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function formatStatus(value: unknown) {
   const text = String(value ?? "").trim().toUpperCase();
   return text || "UNKNOWN";
@@ -165,9 +174,10 @@ function getShiftWindow(date: string, shift: ShiftFilter) {
   }
 
   if (shift === "night") {
-    const start = new Date(`${date}T20:00:01`).getTime();
-    const end = endOfDay;
-    const effectiveEnd = isToday ? Math.min(end, now.getTime()) : end;
+    const nextDate = addDays(date, 1);
+    const start = new Date(`${date}T20:00:00`).getTime();
+    const end = new Date(`${nextDate}T08:00:00`).getTime();
+    const effectiveEnd = now.getTime() >= start ? Math.min(end, now.getTime()) : end;
     return {
       start,
       end: effectiveEnd,
@@ -228,17 +238,23 @@ function sanitizeCurrentReading(value: number | null) {
 }
 
 async function getParsedRowsForDate(date: string) {
-  const pool = getPool();
-  const dayPrefix = `${date}T`;
+  return getParsedRowsForDates([date]);
+}
+
+async function getParsedRowsForDates(dates: string[]) {
+  const pool = await getPool();
+  const uniqueDates = Array.from(new Set(dates));
+  const likeClauses = uniqueDates.map(() => "payload_text LIKE ?").join(" OR ");
+  const params = uniqueDates.map((dateValue) => `%"TS":"${dateValue}T%`);
 
   const [rows] = await pool.query<GenericRow[]>(
     `
       SELECT topic, payload_json, payload_text, received_at
       FROM mqtt_messages
-      WHERE payload_text LIKE ?
+      WHERE ${likeClauses}
       ORDER BY received_at ASC
     `,
-    [`%"TS":"${dayPrefix}%`]
+    params
   );
 
   return rows
@@ -396,7 +412,9 @@ export async function getLiveStatusDashboard(
 ): Promise<LiveStatusDashboard> {
   const selectedDate = getSelectedDate(options.date);
   const selectedShift = getShiftFilter(options.shift);
-  const parsedRows = await getParsedRowsForDate(selectedDate);
+  const parsedRows = await getParsedRowsForDates(
+    selectedShift === "night" ? [selectedDate, addDays(selectedDate, 1)] : [selectedDate]
+  );
 
   return buildDashboard(parsedRows, selectedDate, selectedShift);
 }
@@ -409,7 +427,9 @@ export async function getMachineDetails(options: {
 }): Promise<MachineDetails> {
   const selectedDate = getSelectedDate(options.date);
   const selectedShift = getShiftFilter(options.shift);
-  const parsedRows = await getParsedRowsForDate(selectedDate);
+  const parsedRows = await getParsedRowsForDates(
+    selectedShift === "night" ? [selectedDate, addDays(selectedDate, 1)] : [selectedDate]
+  );
   const window = getShiftWindow(selectedDate, selectedShift);
 
   const deviceRows = parsedRows

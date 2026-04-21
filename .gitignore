@@ -1,6 +1,8 @@
 .next
 node_modules
-.env.local
+.env*
+!.env.example
+.app-config
 dist
 coverage
 npm-debug.log*

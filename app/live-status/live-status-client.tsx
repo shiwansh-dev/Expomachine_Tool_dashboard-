@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import type { Route } from "next";
 import { useEffect, useMemo, useState } from "react";
 import styles from "./live-status.module.css";
 import type {
@@ -480,6 +482,9 @@ export default function LiveStatusClient({ initialDate }: LiveStatusClientProps)
                 Evening
               </button>
             </div>
+            <Link className={styles.configLink} href={"/config" as Route}>
+              SQL Config
+            </Link>
             <button
               className={styles.refreshButton}
               onClick={() => {

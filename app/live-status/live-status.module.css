@@ -44,6 +44,27 @@
   transition: all 0.2s ease;
 }
 
+.configLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #d7dee6;
+  background: #fff;
+  color: #2c3e50;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.configLink:hover {
+  border-color: #3498db;
+  color: #2980b9;
+  background: #f8fbff;
+}
+
 .refreshButton:hover {
   background: #2980b9;
 }

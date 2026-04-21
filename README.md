@@ -1,10 +1,22 @@
-# Factory Genie Next.js Dashboard
+# Factory Genie Desktop Dashboard
 
-Simple Next.js app that reads live machine status from the MySQL `iot.mqtt_messages` table and renders it at `/live-status`.
+This project now supports two ways of running:
 
-## Environment
+- Browser mode with Next.js
+- Desktop mode as a packaged Windows `.exe` using Electron
 
-The app uses these server-side environment variables:
+The live-status dashboard still reads from the MySQL `iot.mqtt_messages` table, but SQL credentials can now be managed from an in-app `/config` page instead of relying only on `.env.local`.
+
+## SQL Configuration
+
+The app loads database credentials in this order:
+
+1. Saved local desktop config
+2. Environment variables from `.env.local`
+
+Saved desktop credentials are stored locally per machine, so the packaged application can run independently after setup.
+
+Environment variable fallback:
 
 ```env
 DB_HOST=38.242.200.141
@@ -14,23 +26,15 @@ DB_PASSWORD=Admin@1234
 DB_NAME=iot
 ```
 
-They are already placed in `.env.local` for this workspace.
-
 ## Routes
 
-- `/live-status`: dashboard page
-- `/api/live-status`: JSON API used by the dashboard
+- `/live-status`: main dashboard
+- `/config`: SQL credential setup page
+- `/api/live-status`: dashboard data API
+- `/api/live-status/machine-details`: modal detail API
+- `/api/config/db`: load, test, and save SQL credentials
 
-## Data Mapping
-
-The current database contains the `mqtt_messages` table. The app reads the latest MQTT payloads and expands:
-
-- `payload_json.ID` as the device identifier
-- `payload_json.TS` as the device timestamp
-- `payload_json.status` as per-machine live status
-- machine readings such as `GMC 1`, `GNC 11`, `GTC 1` as extra metrics
-
-## Run
+## Development Run
 
 ```bash
 npm install
@@ -39,7 +43,28 @@ npm run dev
 
 Open `http://localhost:3000/live-status`.
 
-## Important Path Note
+## Desktop Run
 
-This workspace path includes a trailing space in the folder name, which caused `npm install` extraction issues during verification.
-If that happens locally, move or copy the project to a path without the trailing space and rerun install there.
+Build the Next standalone server and launch it inside Electron:
+
+```bash
+npm run desktop
+```
+
+## Build Windows EXE
+
+Create distributable Windows builds:
+
+```bash
+npm run dist
+```
+
+This produces Windows targets through `electron-builder`, including:
+
+- `nsis` installer
+- `portable` executable
+
+## Notes
+
+- The desktop app bundles the built Next standalone server and starts it internally on localhost.
+- If SQL credentials change later, open `/config` inside the app and save the new values.
