@@ -2,13 +2,18 @@
   "name": "expomachine-tool-dashboard",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "electron:dev": "electron .",
+    "build:desktop": "next build && electron-builder --win portable"
   },
   "dependencies": {
+    "dotenv": "^16.4.7",
+    "mqtt": "^5.15.2",
     "mysql2": "^3.11.3",
     "next": "^14.2.15",
     "react": "^18.3.1",
@@ -18,8 +23,45 @@
     "@types/node": "^22.7.4",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "electron": "^32.2.7",
+    "electron-builder": "^25.1.8",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.15",
     "typescript": "^5.6.2"
+  },
+  "build": {
+    "appId": "com.expomachine.dashboard",
+    "productName": "Factory Genie Dashboard",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "app/**/*",
+      "electron/**/*",
+      "lib/**/*",
+      ".next/**/*",
+      "next.config.mjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": ".env.local",
+        "to": ".env.local"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "Factory-Genie-Dashboard.exe"
+    }
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type MouseEvent, useEffect, useMemo, useState } from "react";
 import styles from "./live-status.module.css";
 import type {
   CurrentPoint,
@@ -13,7 +13,19 @@ import type {
 
 type LiveStatusClientProps = {
   initialDate: string;
+  dashboardTitle: string;
 };
+
+const MACHINE_MODAL_TAB_STORAGE_KEY = "factory-genie-machine-modal-tab";
+
+function getInitialMachineModalTab(): "off" | "graph" {
+  if (typeof window === "undefined") {
+    return "off";
+  }
+
+  const value = window.localStorage.getItem(MACHINE_MODAL_TAB_STORAGE_KEY);
+  return value === "graph" ? "graph" : "off";
+}
 
 function formatMinutesToHHMM(value: number) {
   const totalMinutes = Math.max(0, Math.round(value));
@@ -45,6 +57,16 @@ function RuntimeDial({ percent }: { percent: number }) {
 
 function formatDateTime(value: string) {
   return value.replace("T", " ");
+}
+
+function splitDateTime(value: string) {
+  const normalized = formatDateTime(value);
+  const [date, time = "-"] = normalized.split(" ");
+
+  return {
+    date: date || "-",
+    time
+  };
 }
 
 function formatSignal(value: number | null) {
@@ -85,23 +107,30 @@ function OffTable({ periods }: { periods: OffPeriod[] }) {
         <table className={styles.modalTable}>
           <thead>
             <tr>
+              <th>Date</th>
               <th>Start Time</th>
               <th>End Time</th>
               <th>Duration</th>
             </tr>
           </thead>
           <tbody>
-            {filteredPeriods.map((period, index) => (
-              <tr key={`${period.startTime}-${index}`}>
-                <td>{period.startTime}</td>
-                <td>{period.endTime}</td>
-                <td>{formatMinutesToHHMM(period.durationMinutes)}</td>
-              </tr>
-            ))}
+            {filteredPeriods.map((period, index) => {
+              const start = splitDateTime(period.startTime);
+              const end = splitDateTime(period.endTime);
+
+              return (
+                <tr key={`${period.startTime}-${index}`}>
+                  <td>{start.date}</td>
+                  <td>{start.time}</td>
+                  <td>{end.time}</td>
+                  <td>{formatMinutesToHHMM(period.durationMinutes)}</td>
+                </tr>
+              );
+            })}
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={2}>Total Duration</td>
+              <td colSpan={3}>Total Duration</td>
               <td>{formatMinutesToHHMM(totalMinutes)}</td>
             </tr>
           </tfoot>
@@ -114,10 +143,18 @@ function OffTable({ periods }: { periods: OffPeriod[] }) {
   );
 }
 
-function CurrentGraph({ points }: { points: CurrentPoint[] }) {
+function CurrentGraph({
+  points,
+  thresholdValue
+}: {
+  points: CurrentPoint[];
+  thresholdValue: number | null;
+}) {
   const [hoveredPoint, setHoveredPoint] = useState<{
     x: number;
     y: number;
+    tooltipX: number;
+    tooltipY: number;
     time: string;
     value: number;
   } | null>(null);
@@ -131,14 +168,16 @@ function CurrentGraph({ points }: { points: CurrentPoint[] }) {
   const height = 280;
   const padding = 28;
   const values = validPoints.map((point) => point.value as number);
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
+  const scaleValues = thresholdValue === null ? values : [...values, thresholdValue];
+  const minValue = Math.min(...scaleValues);
+  const maxValue = Math.max(...scaleValues);
   const spread = maxValue - minValue || 1;
+  const toY = (value: number) =>
+    height - padding - ((value - minValue) / spread) * (height - padding * 2);
 
   const coordinates = validPoints.map((point, index) => {
     const x = padding + (index / (validPoints.length - 1)) * (width - padding * 2);
-    const y =
-      height - padding - (((point.value as number) - minValue) / spread) * (height - padding * 2);
+    const y = toY(point.value as number);
     return {
       x,
       y,
@@ -158,6 +197,21 @@ function CurrentGraph({ points }: { points: CurrentPoint[] }) {
     const y = padding + (height - padding * 2) * ratio;
     return { value: value.toFixed(2), y };
   });
+  const thresholdY = thresholdValue === null ? null : toY(thresholdValue);
+
+  function updateHoveredPoint(event: MouseEvent<SVGSVGElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const svgX = ((event.clientX - rect.left) / rect.width) * width;
+    const nearestPoint = coordinates.reduce((nearest, point) => {
+      return Math.abs(point.x - svgX) < Math.abs(nearest.x - svgX) ? point : nearest;
+    }, coordinates[0]);
+
+    setHoveredPoint({
+      ...nearestPoint,
+      tooltipX: event.clientX - rect.left,
+      tooltipY: event.clientY - rect.top
+    });
+  }
 
   return (
     <div className={styles.graphSection}>
@@ -167,6 +221,7 @@ function CurrentGraph({ points }: { points: CurrentPoint[] }) {
           viewBox={`0 0 ${width} ${height}`}
           className={styles.graphSvg}
           role="img"
+          onMouseMove={updateHoveredPoint}
           onMouseLeave={() => setHoveredPoint(null)}
         >
           {ticks.map((tick) => (
@@ -177,6 +232,20 @@ function CurrentGraph({ points }: { points: CurrentPoint[] }) {
               </text>
             </g>
           ))}
+          {thresholdY !== null ? (
+            <g>
+              <line
+                x1={padding}
+                y1={thresholdY}
+                x2={width - padding}
+                y2={thresholdY}
+                className={styles.thresholdLine}
+              />
+              <text x={width - padding - 92} y={thresholdY - 8} className={styles.thresholdLabel}>
+                Threshold {thresholdValue?.toFixed(2)}
+              </text>
+            </g>
+          ) : null}
           <path d={path} className={styles.graphPath} />
           {coordinates.map((point, index) => {
             return (
@@ -184,15 +253,20 @@ function CurrentGraph({ points }: { points: CurrentPoint[] }) {
                 key={`${point.time}-${index}`}
                 cx={point.x}
                 cy={point.y}
-                r={4}
+                r={2}
                 className={styles.graphPoint}
-                onMouseEnter={() => setHoveredPoint(point)}
               />
             );
           })}
         </svg>
         {hoveredPoint ? (
-          <div className={styles.graphTooltip}>
+          <div
+            className={styles.graphTooltip}
+            style={{
+              left: hoveredPoint.tooltipX,
+              top: hoveredPoint.tooltipY
+            }}
+          >
             <div>Current: {hoveredPoint.value.toFixed(2)}</div>
             <div>Time: {formatDateTime(hoveredPoint.time)}</div>
           </div>
@@ -287,7 +361,10 @@ function MachineModal({
             ) : activeTab === "off" ? (
               <OffTable periods={details?.offPeriods ?? []} />
             ) : (
-              <CurrentGraph points={details?.currentSeries ?? []} />
+              <CurrentGraph
+                points={details?.currentSeries ?? []}
+                thresholdValue={details?.thresholdValue ?? null}
+              />
             )}
           </div>
         </div>
@@ -312,6 +389,7 @@ function MachineCard({
         <div>
           <h4>{machine.machineName}</h4>
           <p>{machine.group}</p>
+          <span className={styles.shiftBadge}>{machine.shiftLabel}</span>
         </div>
         <span className={styles.statusBadge}>{machine.status}</span>
       </div>
@@ -336,7 +414,8 @@ function MachineCard({
   );
 }
 
-export default function LiveStatusClient({ initialDate }: LiveStatusClientProps) {
+export default function LiveStatusClient({ initialDate, dashboardTitle }: LiveStatusClientProps) {
+  const [currentDashboardTitle, setCurrentDashboardTitle] = useState(dashboardTitle);
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [selectedShift, setSelectedShift] = useState<ShiftFilter>("all");
   const [loading, setLoading] = useState(true);
@@ -345,9 +424,48 @@ export default function LiveStatusClient({ initialDate }: LiveStatusClientProps)
   const [data, setData] = useState<LiveStatusDashboard | null>(null);
   const [selectedMachine, setSelectedMachine] = useState<LiveStatusMachine | null>(null);
   const [machineDetails, setMachineDetails] = useState<MachineDetails | null>(null);
-  const [machineModalTab, setMachineModalTab] = useState<"off" | "graph">("off");
+  const [machineModalTab, setMachineModalTabState] = useState<"off" | "graph">(
+    getInitialMachineModalTab
+  );
   const [machineDetailsLoading, setMachineDetailsLoading] = useState(false);
   const [machineDetailsError, setMachineDetailsError] = useState<string | null>(null);
+
+  const setMachineModalTab = (value: "off" | "graph") => {
+    setMachineModalTabState(value);
+    window.localStorage.setItem(MACHINE_MODAL_TAB_STORAGE_KEY, value);
+  };
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function fetchDashboardTitle() {
+      try {
+        const response = await fetch(`/api/settings?t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache"
+          }
+        });
+        const json = await response.json();
+
+        if (!response.ok) {
+          return;
+        }
+
+        if (!isCancelled && typeof json?.dashboardTitle === "string") {
+          setCurrentDashboardTitle(json.dashboardTitle);
+        }
+      } catch {
+        // Keep the server-rendered title if settings refresh fails.
+      }
+    }
+
+    fetchDashboardTitle();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -395,7 +513,7 @@ export default function LiveStatusClient({ initialDate }: LiveStatusClientProps)
     fetchDashboard(true);
     const intervalId = window.setInterval(() => {
       fetchDashboard(false);
-    }, 10000);
+    }, 10 * 60 * 1000);
 
     return () => {
       isCancelled = true;
@@ -404,14 +522,21 @@ export default function LiveStatusClient({ initialDate }: LiveStatusClientProps)
   }, [selectedDate, selectedShift]);
 
   const machines = useMemo(() => {
-    return [...(data?.machines ?? [])].sort((a, b) =>
-      a.machineName.localeCompare(b.machineName, undefined, { numeric: true })
-    );
+    const shiftOrder: Record<ShiftFilter, number> = {
+      morning: 0,
+      night: 1,
+      all: 2
+    };
+
+    return [...(data?.machines ?? [])].sort((a, b) => {
+      const shiftDiff = shiftOrder[a.shift] - shiftOrder[b.shift];
+      if (shiftDiff !== 0) return shiftDiff;
+      return a.machineName.localeCompare(b.machineName, undefined, { numeric: true });
+    });
   }, [data]);
 
   const openMachineModal = (machine: LiveStatusMachine) => {
     setSelectedMachine(machine);
-    setMachineModalTab("off");
     setMachineDetails(null);
     setMachineDetailsError(null);
     setMachineDetailsLoading(true);
@@ -420,7 +545,7 @@ export default function LiveStatusClient({ initialDate }: LiveStatusClientProps)
       try {
         const params = new URLSearchParams({
           date: selectedDate,
-          shift: selectedShift,
+          shift: machine.shift === "morning" || machine.shift === "night" ? machine.shift : selectedShift,
           deviceId: machine.deviceId,
           machineName: machine.machineName
         });
@@ -448,7 +573,7 @@ export default function LiveStatusClient({ initialDate }: LiveStatusClientProps)
         <header className={styles.dashboardHeader}>
           <div className={styles.headerMain}>
             <h1>
-              <span>EXPO MACHINE &amp; TOOL</span>
+              <span>{currentDashboardTitle}</span>
             </h1>
           </div>
 
@@ -577,7 +702,7 @@ export default function LiveStatusClient({ initialDate }: LiveStatusClientProps)
                   <div className={styles.channelContainer}>
                     {machines.map((machine) => (
                       <MachineCard
-                        key={`${machine.deviceId}-${machine.machineName}`}
+                        key={`${machine.deviceId}-${machine.shift}-${machine.machineName}`}
                         machine={machine}
                         onSelect={openMachineModal}
                       />

@@ -30,6 +30,7 @@
 
 .headerMain {
   flex: 1 1 auto;
+  min-width: 0;
 }
 
 .refreshButton {
@@ -57,6 +58,7 @@
 
 .dashboardHeader h1 span {
   display: block;
+  overflow-wrap: anywhere;
 }
 
 .dashboardUserName {
@@ -333,6 +335,18 @@
   margin: 3px 0 0;
   color: #64748b;
   font-size: 0.85rem;
+}
+
+.shiftBadge {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(52, 152, 219, 0.12);
+  color: #2563eb;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .statusBadge {
@@ -660,6 +674,18 @@
   cursor: pointer;
 }
 
+.thresholdLine {
+  stroke: #ef4444;
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+}
+
+.thresholdLabel {
+  fill: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .graphLabels {
   display: flex;
   justify-content: space-between;
@@ -669,7 +695,11 @@
 }
 
 .graphTooltip {
-  align-self: flex-start;
+  position: absolute;
+  z-index: 4;
+  transform: translate(14px, -50%);
+  pointer-events: none;
+  min-width: 168px;
   background: rgba(17, 24, 39, 0.92);
   color: #fff;
   border-radius: 8px;
