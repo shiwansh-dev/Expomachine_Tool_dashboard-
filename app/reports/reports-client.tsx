@@ -25,6 +25,10 @@ type ReportResponse = {
   endDate: string;
   shift: ReportShift;
   rows: ReportRow[];
+  dataSource?: {
+    precomputedDays: number;
+    liveDays: number;
+  };
 };
 
 type MachineDayStats = {
@@ -449,6 +453,17 @@ export default function ReportsClient() {
       </fieldset>
 
       {error ? <p className="report-error">{error}</p> : null}
+
+      {data?.dataSource ? (
+        <p className="report-data-source-note">
+          {data.dataSource.precomputedDays} day{data.dataSource.precomputedDays === 1 ? "" : "s"} from
+          precomputed shift data
+          {data.dataSource.liveDays > 0
+            ? `, ${data.dataSource.liveDays} computed live (not yet precomputed by the shift-compute worker)`
+            : ""}
+          .
+        </p>
+      ) : null}
 
       <div className="summary-grid report-summary-grid">
         <div className="summary-card"><span>Days</span><strong>{totals.days}</strong></div>

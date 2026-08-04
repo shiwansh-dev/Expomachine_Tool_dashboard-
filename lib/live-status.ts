@@ -75,6 +75,8 @@ export type LiveStatusDashboard = {
     runtimeMinutes: number;
   };
   inspectedAt: string;
+  dataSource?: "shift-summary" | "per-minute";
+  shiftComputedAt?: string | null;
 };
 
 export type OffPeriod = {
@@ -570,7 +572,14 @@ async function getLatestSnapshotRows(limit = LATEST_SNAPSHOT_LIMIT): Promise<Par
   return rows.map(parseRawRow).filter((row): row is ParsedRow => row !== null);
 }
 
-async function getLatestRowByDevice(): Promise<Map<string, ParsedRow>> {
+export type LiveStatusOverlayDevice = {
+  deviceId: string;
+  signal: number | null;
+  lastSeen: string;
+  statusMap: Record<string, string>;
+};
+
+export async function getLiveStatusOverlay(): Promise<LiveStatusOverlayDevice[]> {
   const rows = await getLatestSnapshotRows();
   const latestByDevice = new Map<string, ParsedRow>();
 
@@ -581,74 +590,42 @@ async function getLatestRowByDevice(): Promise<Map<string, ParsedRow>> {
     }
   }
 
-  return latestByDevice;
+  return Array.from(latestByDevice.entries()).map(([deviceId, row]) => ({
+    deviceId,
+    signal: toNumericReading(row.payload.Signal),
+    lastSeen: String(row.payload.TS ?? "-"),
+    statusMap: Object.fromEntries(
+      Object.entries(row.payload.status ?? {}).map(([machineName, status]) => [
+        machineName,
+        formatStatus(status)
+      ])
+    )
+  }));
 }
 
-function applyLiveStatusOverlay(
-  dashboard: LiveStatusDashboard,
-  latestByDevice: Map<string, ParsedRow>
-): LiveStatusDashboard {
-  const machines = dashboard.machines.map((machine) => {
-    const latest = latestByDevice.get(machine.deviceId);
-    const rawStatus = latest?.payload.status?.[machine.machineName];
-    if (rawStatus === undefined) return machine;
+function emptyDashboard(date: string, shift: ShiftFilter): LiveStatusDashboard {
+  const window = getShiftWindow(date, shift);
 
-    const status = formatStatus(rawStatus);
-    return {
-      ...machine,
-      status,
-      currentStatus: status,
-      lastSeen: String(latest?.payload.TS ?? machine.lastSeen)
-    };
-  });
-
-  const devices = dashboard.devices.map((device) => {
-    const latest = latestByDevice.get(device.deviceId);
-    return {
-      ...device,
-      signal: latest ? toNumericReading(latest.payload.Signal) ?? device.signal : device.signal,
-      lastSeen: latest ? String(latest.payload.TS ?? device.lastSeen) : device.lastSeen,
-      activeMachines: 0,
-      inactiveMachines: 0,
-      warningMachines: 0,
-      unknownMachines: 0
-    };
-  });
-
-  const devicesById = new Map(devices.map((device) => [device.deviceId, device]));
-
-  for (const machine of machines) {
-    const device = devicesById.get(machine.deviceId);
-    if (device) {
-      device[getStatusBucket(machine.status)] += 1;
-    }
-  }
-
-  const summary = machines.reduce(
-    (acc, machine) => {
-      acc.runtimeMinutes += machine.runtimeMinutes;
-      acc[getStatusBucket(machine.status)] += 1;
-      return acc;
-    },
-    {
-      totalDevices: devicesById.size,
-      totalMachines: machines.length,
+  return {
+    tableName: "shift_summary",
+    selectedDate: date,
+    selectedShift: shift,
+    shiftWindowLabel: window.label,
+    shiftDurationMinutes: Number(window.durationMinutes.toFixed(1)),
+    devices: [],
+    machines: [],
+    summary: {
+      totalDevices: 0,
+      totalMachines: 0,
       activeMachines: 0,
       inactiveMachines: 0,
       warningMachines: 0,
       unknownMachines: 0,
       runtimeMinutes: 0
-    }
-  );
-
-  summary.runtimeMinutes = Number(summary.runtimeMinutes.toFixed(1));
-
-  return {
-    ...dashboard,
-    machines,
-    devices: Array.from(devicesById.values()),
-    summary,
-    inspectedAt: new Date().toISOString()
+    },
+    inspectedAt: new Date().toISOString(),
+    dataSource: "shift-summary",
+    shiftComputedAt: null
   };
 }
 
@@ -662,15 +639,52 @@ export async function getLiveStatusDashboard(
   const cachedDashboard = cached?.dashboards[selectedShift] ?? null;
 
   if (!cachedDashboard) {
-    const parsedRows = await getParsedRowsForDate(selectedDate);
-
-    return selectedShift === "all"
-      ? buildAllShiftsDashboard(parsedRows, selectedDate)
-      : buildDashboard(parsedRows, selectedDate, selectedShift);
+    return emptyDashboard(selectedDate, selectedShift);
   }
 
-  const latestByDevice = await getLatestRowByDevice();
-  return applyLiveStatusOverlay(cachedDashboard, latestByDevice);
+  return {
+    ...cachedDashboard,
+    dataSource: "shift-summary",
+    shiftComputedAt: cached?.computedAt ?? null,
+    inspectedAt: new Date().toISOString()
+  };
+}
+
+/**
+ * Reports span arbitrary historical date ranges, but the shift-compute worker only
+ * keeps shift_summary populated for today and yesterday. Prefer the cached rows for
+ * speed, and only fall back to a live per-minute scan for dates the worker hasn't
+ * (or can't yet) have computed.
+ */
+export async function getReportDashboard(
+  options: DashboardOptions = {}
+): Promise<LiveStatusDashboard> {
+  const selectedDate = getSelectedDate(options.date);
+  const selectedShift = getShiftFilter(options.shift);
+
+  const cached = await getShiftSummaryPayload(selectedDate).catch(() => null);
+  const cachedDashboard = cached?.dashboards[selectedShift] ?? null;
+
+  if (cachedDashboard) {
+    return {
+      ...cachedDashboard,
+      dataSource: "shift-summary",
+      shiftComputedAt: cached?.computedAt ?? null,
+      inspectedAt: new Date().toISOString()
+    };
+  }
+
+  const parsedRows = await getParsedRowsForDate(selectedDate);
+  const liveDashboard =
+    selectedShift === "all"
+      ? buildAllShiftsDashboard(parsedRows, selectedDate)
+      : buildDashboard(parsedRows, selectedDate, selectedShift);
+
+  return {
+    ...liveDashboard,
+    dataSource: "per-minute",
+    shiftComputedAt: null
+  };
 }
 
 export async function getMachineDetails(options: {

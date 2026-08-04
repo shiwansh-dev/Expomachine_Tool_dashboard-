@@ -319,6 +319,11 @@
   background: rgba(148, 163, 184, 0.16);
 }
 
+.dataSourceCached {
+  color: #1e8e5a;
+  font-weight: 700;
+}
+
 .cardHeader {
   width: 100%;
   display: flex;

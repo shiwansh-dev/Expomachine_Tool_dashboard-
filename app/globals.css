@@ -874,6 +874,12 @@ tbody tr:hover {
   letter-spacing: 0;
 }
 
+.report-data-source-note {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .report-error {
   margin: 0 0 18px;
   color: var(--bad);

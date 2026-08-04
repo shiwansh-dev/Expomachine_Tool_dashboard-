@@ -6,6 +6,7 @@ import type {
   CurrentPoint,
   LiveStatusDashboard,
   LiveStatusMachine,
+  LiveStatusOverlayDevice,
   MachineDetails,
   OffPeriod,
   ShiftFilter
@@ -17,6 +18,91 @@ type LiveStatusClientProps = {
 };
 
 const MACHINE_MODAL_TAB_STORAGE_KEY = "factory-genie-machine-modal-tab";
+const DASHBOARD_REFRESH_MS = 10 * 60 * 1000;
+const OVERLAY_REFRESH_MS = 30 * 1000;
+
+function getLocalDateString() {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getStatusBucket(status: string) {
+  if (["ON", "ACTIVE", "RUNNING"].includes(status)) return "activeMachines" as const;
+  if (["OFF", "STOP", "INACTIVE"].includes(status)) return "inactiveMachines" as const;
+  if (["LOW", "OUT", "WARNING", "FAULT", "ALERT"].includes(status)) return "warningMachines" as const;
+  return "unknownMachines" as const;
+}
+
+function mergeLiveOverlay(
+  dashboard: LiveStatusDashboard,
+  overlay: LiveStatusOverlayDevice[]
+): LiveStatusDashboard {
+  const overlayByDevice = new Map(overlay.map((device) => [device.deviceId, device]));
+
+  const machines = dashboard.machines.map((machine) => {
+    const overlayDevice = overlayByDevice.get(machine.deviceId);
+    const status = overlayDevice?.statusMap[machine.machineName];
+    if (!status) return machine;
+
+    return {
+      ...machine,
+      status,
+      currentStatus: status,
+      lastSeen: overlayDevice.lastSeen
+    };
+  });
+
+  const devices = dashboard.devices.map((device) => {
+    const overlayDevice = overlayByDevice.get(device.deviceId);
+    return {
+      ...device,
+      signal: overlayDevice?.signal ?? device.signal,
+      lastSeen: overlayDevice?.lastSeen ?? device.lastSeen,
+      activeMachines: 0,
+      inactiveMachines: 0,
+      warningMachines: 0,
+      unknownMachines: 0
+    };
+  });
+
+  const devicesById = new Map(devices.map((device) => [device.deviceId, device]));
+
+  for (const machine of machines) {
+    const device = devicesById.get(machine.deviceId);
+    if (device) {
+      device[getStatusBucket(machine.status)] += 1;
+    }
+  }
+
+  const summary = machines.reduce(
+    (acc, machine) => {
+      acc.runtimeMinutes += machine.runtimeMinutes;
+      acc[getStatusBucket(machine.status)] += 1;
+      return acc;
+    },
+    {
+      totalDevices: devicesById.size,
+      totalMachines: machines.length,
+      activeMachines: 0,
+      inactiveMachines: 0,
+      warningMachines: 0,
+      unknownMachines: 0,
+      runtimeMinutes: 0
+    }
+  );
+
+  summary.runtimeMinutes = Number(summary.runtimeMinutes.toFixed(1));
+
+  return {
+    ...dashboard,
+    machines,
+    devices: Array.from(devicesById.values()),
+    summary
+  };
+}
 
 function getInitialMachineModalTab(): "off" | "graph" {
   if (typeof window === "undefined") {
@@ -513,13 +599,42 @@ export default function LiveStatusClient({ initialDate, dashboardTitle }: LiveSt
     fetchDashboard(true);
     const intervalId = window.setInterval(() => {
       fetchDashboard(false);
-    }, 10 * 60 * 1000);
+    }, DASHBOARD_REFRESH_MS);
 
     return () => {
       isCancelled = true;
       window.clearInterval(intervalId);
     };
   }, [selectedDate, selectedShift]);
+
+  useEffect(() => {
+    if (selectedDate !== getLocalDateString()) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchOverlay = async () => {
+      try {
+        const response = await fetch("/api/live-status/overlay", { cache: "no-store" });
+        const json = await response.json();
+
+        if (!response.ok || isCancelled) return;
+
+        setData((current) => (current ? mergeLiveOverlay(current, json.devices ?? []) : current));
+      } catch {
+        // Live status overlay is best-effort; the next tick will retry.
+      }
+    };
+
+    fetchOverlay();
+    const intervalId = window.setInterval(fetchOverlay, OVERLAY_REFRESH_MS);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [selectedDate]);
 
   const machines = useMemo(() => {
     const shiftOrder: Record<ShiftFilter, number> = {
@@ -691,13 +806,25 @@ export default function LiveStatusClient({ initialDate, dashboardTitle }: LiveSt
             <section className={styles.progressSection}>
               {machines.length === 0 ? (
                 <div className={styles.contentLoader}>
-                  <p>No MQTT rows found for {selectedDate}.</p>
+                  <p>
+                    {data?.shiftComputedAt
+                      ? `No machines found in the precomputed shift data for ${selectedDate}.`
+                      : `Shift data for ${selectedDate} hasn't been precomputed yet. The Compute Shift worker runs every 10 minutes.`}
+                  </p>
                 </div>
               ) : (
                 <div className={styles.deviceSection}>
                   <div className={styles.sectionHeader}>
                     <h2>Machine Live Status</h2>
-                    <p>{refreshing ? "Updating latest values..." : "Auto-refresh every 10 seconds"}</p>
+                    <p>
+                      {refreshing ? "Updating latest values..." : "Auto-refresh every 10 minutes"}
+                      {" — "}
+                      <span className={styles.dataSourceCached}>
+                        Precomputed shiftwise data
+                        {data?.shiftComputedAt ? ` · computed ${data.shiftComputedAt}` : ""}
+                      </span>
+                      {" (machine status updates every 30s from the latest per-minute reading)"}
+                    </p>
                   </div>
                   <div className={styles.channelContainer}>
                     {machines.map((machine) => (

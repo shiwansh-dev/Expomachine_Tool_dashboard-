@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getLiveStatusDashboard, type ShiftFilter } from "@/lib/live-status";
+import { getReportDashboard, type ShiftFilter } from "@/lib/live-status";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +59,7 @@ function getShifts(value: ReportShift): Array<"morning" | "night"> {
   return value === "both" ? ["morning", "night"] : [value];
 }
 
-function toReportRow(date: string, shift: "morning" | "night", machine: Awaited<ReturnType<typeof getLiveStatusDashboard>>["machines"][number]): ReportRow {
+function toReportRow(date: string, shift: "morning" | "night", machine: Awaited<ReturnType<typeof getReportDashboard>>["machines"][number]): ReportRow {
   return {
     date,
     shift,
@@ -96,11 +96,19 @@ export async function GET(request: NextRequest) {
     const dates = getDateRange(startDate as string, endDate as string);
     const shifts = getShifts(selectedShift);
     const rows: ReportRow[] = [];
+    const precomputedDates = new Set<string>();
+    const liveDates = new Set<string>();
 
     for (const date of dates) {
       for (const shift of shifts) {
-        const dashboard = await getLiveStatusDashboard({ date, shift: shift as ShiftFilter });
+        const dashboard = await getReportDashboard({ date, shift: shift as ShiftFilter });
         rows.push(...dashboard.machines.map((machine) => toReportRow(date, shift, machine)));
+
+        if (dashboard.dataSource === "per-minute") {
+          liveDates.add(date);
+        } else {
+          precomputedDates.add(date);
+        }
       }
     }
 
@@ -131,6 +139,10 @@ export async function GET(request: NextRequest) {
         ...summary,
         totalRuntimeMinutes: Number(summary.totalRuntimeMinutes.toFixed(1)),
         totalWorktimeMinutes: Number(summary.totalWorktimeMinutes.toFixed(1))
+      },
+      dataSource: {
+        precomputedDays: precomputedDates.size,
+        liveDays: liveDates.size
       }
     });
   } catch (error) {
